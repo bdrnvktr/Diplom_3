@@ -1,0 +1,28 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+
+# Python байт-код
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+
+# Логи и кэш
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Артефакты тестирования
+allure-results/
+allure-report/
+
+# Временные файлы
+.DS_Store
+Thumbs.db
