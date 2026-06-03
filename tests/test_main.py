@@ -1,72 +1,68 @@
-import pytest
 import allure
-from locators.locators import (
-    BURGER_BUILDER_HEADER,
-    ORDER_FEED_HEADER,
-    INGREDIENT_DETAILS_HEADER,
-    BEEF_METEORITE_IN_BASKET
-)
+import pytest
 from pages.main_page import MainPage
+from pages.feed_page import OrderFeedPage
 
 
-@allure.feature("Основные разделы приложения")
-class TestMain:
-    @pytest.fixture(autouse=True)
-    def setup(self, driver):
-        self.main_page = MainPage(driver)
-
-    @allure.story("Навигация")
-    @allure.title("Переход в раздел «Конструктор»")
-    def test_go_to_constructor(self):
-        """Проверка перехода в раздел «Конструктор»"""
-        self.main_page.go_to_feed()
-        self.main_page.go_to_constructor()
-        assert self.main_page.is_element_visible(BURGER_BUILDER_HEADER), "Не удалось перейти в раздел «Конструктор»"
-
-    @allure.story("Навигация")
-    @allure.title("Переход в раздел «Лента заказов»")
-    def test_go_to_order_feed(self):
-        """Проверка перехода в раздел «Лента заказов»"""
-        self.main_page.go_to_feed()
-        assert self.main_page.is_element_visible(ORDER_FEED_HEADER), "Не удалось перейти в раздел «Лента заказов»"
-
-    @allure.story("Работа с ингредиентами")
-    @allure.title("Открытие модального окна с деталями ингредиента")
-    def test_open_ingredient_details(self):
-        """Проверка открытия модального окна с деталями ингредиента"""
-        self.main_page.go_to_constructor()
-        self.main_page.switch_to_fillings_tab()
-        self.main_page.open_ingredient_details()
-        assert self.main_page.is_element_visible(INGREDIENT_DETAILS_HEADER), "Модальное окно с деталями ингредиента не открылось"
-
-    @allure.story("Работа с модальными окнами")
-    @allure.title("Закрытие модального окна кликом по крестику")
-    def test_close_modal(self):
-        """Проверка закрытия модального окна кликом по крестику"""
-        self.main_page.go_to_constructor()
-        self.main_page.switch_to_fillings_tab()
-        self.main_page.open_ingredient_details()
-        self.main_page.close_modal()
-        assert not self.main_page.is_element_visible(INGREDIENT_DETAILS_HEADER), "Модальное окно не закрылось"
-
-    @allure.story("Добавление ингредиентов")
-    @allure.title("Счётчик ингредиента увеличивается при добавлении в корзину")
-    def test_add_ingredient_increases_counter(self):
-        """Проверка, что при добавлении ингредиента счётчик увеличивается с 0 до 1"""
-        self.main_page.go_to_constructor()
-        self.main_page.switch_to_fillings_tab()
-
-        # Получаем начальное значение счётчика
-        initial_count = self.main_page.get_beef_meteorite_counter()
-        print(f"Начальное значение счётчика: {initial_count}")
-
-        # Убедимся, что изначально счётчик равен 0
-        assert initial_count == 0, f"Ожидалось начальное значение 0, но получено {initial_count}"
-
-        # Перетаскиваем ингредиент в корзину
-        self.main_page.add_beef_meteorite_to_basket()
-
-        # Проверяем, что счётчик увеличился
-        final_count = self.main_page.get_beef_meteorite_counter()
-        print(f"Конечное значение счётчика: {final_count}")
-        assert final_count == 1, f"Ожидалось значение 1, но получено {final_count}"
+@allure.feature('Основной функционал')
+class TestMainFunctionality:
+    
+    @allure.title('Переход по клику на "Конструктор"')
+    @pytest.mark.parametrize('driver_fixture', ['chrome_driver', 'firefox_driver'])
+    def test_click_constructor_button_main_page_constructor_displayed(self, request, driver_fixture):
+        driver = request.getfixturevalue(driver_fixture)
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        
+        main_page.click_order_feed_button()
+        main_page.click_constructor_button()
+        
+        assert main_page.is_constructor_displayed()
+    
+    @allure.title('Переход по клику на "Лента заказов"')
+    @pytest.mark.parametrize('driver_fixture', ['chrome_driver', 'firefox_driver'])
+    def test_click_order_feed_button_main_page_order_feed_displayed(self, request, driver_fixture):
+        driver = request.getfixturevalue(driver_fixture)
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        
+        main_page.click_order_feed_button()
+        
+        order_feed_page = OrderFeedPage(driver)
+        assert order_feed_page.is_order_feed_displayed()
+    
+    @allure.title('Открытие всплывающего окна с деталями ингредиента')
+    @pytest.mark.parametrize('driver_fixture', ['chrome_driver', 'firefox_driver'])
+    def test_click_ingredient_main_page_details_popup_opened(self, request, driver_fixture):
+        driver = request.getfixturevalue(driver_fixture)
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        
+        main_page.click_ingredient()
+        
+        assert main_page.is_ingredient_details_displayed()
+    
+    @allure.title('Закрытие всплывающего окна кликом по крестику')
+    @pytest.mark.parametrize('driver_fixture', ['chrome_driver', 'firefox_driver'])
+    def test_click_close_button_ingredient_popup_popup_closed(self, request, driver_fixture):
+        driver = request.getfixturevalue(driver_fixture)
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        
+        main_page.click_ingredient()
+        main_page.close_ingredient_popup()
+        
+        assert main_page.is_ingredient_details_not_displayed()
+    
+    @allure.title('Увеличение счётчика при добавлении ингредиента')
+    @pytest.mark.parametrize('login_fixture', ['login_chrome', 'login_firefox'])
+    def test_drag_ingredient_to_basket_main_page_counter_increased(self, request, login_fixture):
+        driver = request.getfixturevalue(login_fixture)
+        main_page = MainPage(driver)
+        main_page.open_main_page()
+        
+        initial_counter = main_page.get_ingredient_counter()
+        main_page.drag_ingredient_to_basket()
+        new_counter = main_page.get_ingredient_counter()
+        
+        assert new_counter > initial_counter
